@@ -30,6 +30,7 @@ export function PodcastCard({ podcast, onPlay, onAddToPlaylist }: PodcastCardPro
       
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg line-clamp-1">{podcast.title}</h3>
+        <p className="text-sm text-muted-foreground mb-2">{podcast.author}</p>
         <p className="text-sm text-muted-foreground line-clamp-2">
           {podcast.description}
         </p>

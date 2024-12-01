@@ -1,39 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-const API_KEY = "your_listennotes_api_key"; // Should be moved to env
-const API_BASE = "https://listen-api.listennotes.com/api/v2";
-
 export interface Podcast {
-  id: string;
+  id: number;
   title: string;
-  publisher: string;
+  author: string;
   image: string;
   description: string;
+  feedUrl: string;
 }
 
 export interface Episode {
-  id: string;
+  id: number;
   title: string;
-  audio: string;
+  enclosureUrl: string;
   duration: number;
-  publishDate: string;
+  datePublished: number;
+  description: string;
 }
 
 async function fetchPodcasts(query?: string): Promise<Podcast[]> {
-  const endpoint = query 
-    ? `/search?q=${encodeURIComponent(query)}&type=podcast`
-    : `/best_podcasts`;
-  
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    headers: { 'X-ListenAPI-Key': API_KEY }
-  });
+  const url = '/api/podcasts' + (query ? `?q=${encodeURIComponent(query)}` : '');
+  const response = await fetch(url);
   
   if (!response.ok) {
     throw new Error('Failed to fetch podcasts');
   }
   
-  const data = await response.json();
-  return data.podcasts || data.results;
+  return response.json();
 }
 
 export function usePodcasts(query?: string) {
@@ -71,5 +64,23 @@ export function useCreatePlaylist() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['playlists'] });
     }
+  });
+}
+
+export async function fetchEpisodes(feedId: number): Promise<Episode[]> {
+  const response = await fetch(`/api/podcasts/${feedId}/episodes`);
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch episodes');
+  }
+  
+  return response.json();
+}
+
+export function useEpisodes(feedId: number) {
+  return useQuery({
+    queryKey: ['episodes', feedId],
+    queryFn: () => fetchEpisodes(feedId),
+    enabled: !!feedId,
   });
 }

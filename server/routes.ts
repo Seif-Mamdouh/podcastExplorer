@@ -4,8 +4,31 @@ import { db } from "../db";
 import { playlists, playlistItems } from "@db/schema";
 import { eq } from "drizzle-orm";
 
+import { searchPodcasts, getEpisodes } from "./podcastIndex";
+
 export function registerRoutes(app: Express) {
   setupAuth(app);
+
+  // Podcast routes
+  app.get("/api/podcasts", async (req, res) => {
+    try {
+      const query = req.query.q as string | undefined;
+      const podcasts = await searchPodcasts(query);
+      res.json(podcasts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch podcasts" });
+    }
+  });
+
+  app.get("/api/podcasts/:feedId/episodes", async (req, res) => {
+    try {
+      const feedId = parseInt(req.params.feedId);
+      const episodes = await getEpisodes(feedId);
+      res.json(episodes);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch episodes" });
+    }
+  });
 
   // Playlists
   app.get("/api/playlists", async (req, res) => {
